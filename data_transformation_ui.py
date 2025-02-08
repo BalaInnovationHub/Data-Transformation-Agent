@@ -3,6 +3,7 @@ import boto3
 import pandas as pd
 import json
 import base64
+import numpy as np
 
 st.title("AI-Powered Data Transformation Bot")
 
@@ -23,6 +24,7 @@ def invoke_claude(prompt):
     body = json.dumps({
         "anthropic_version": "bedrock-2023-05-31",
         "max_tokens": 1000,
+        "temperature": 0.1,
         "messages": [
             {
                 "role": "user",
@@ -96,24 +98,33 @@ if input_file is not None:
         # Read the input file with more flexible parsing options
         df = pd.read_csv(
             input_file,
-            on_bad_lines='warn',  # Warn about problematic lines instead of failing
-            escapechar='\\',      # Handle escaped characters
-            quoting=1,            # Handle quoted fields (1 = QUOTE_ALL)
-            quotechar='"',        # Specify quote character
-            encoding='utf-8-sig'  # Handle BOM and different encodings
+            on_bad_lines='warn',
+            escapechar='\\',
+            quoting=1,
+            quotechar='"',
+            encoding='utf-8-sig'
         )
         
-        # Display input data preview and any parsing warnings
+        # Display input data preview
         st.subheader("Input Data Preview")
         if df.empty:
             st.error("The input file is empty")
         else:
             st.dataframe(df.head())
-            
-            # Display shape information
             st.write(f"Rows: {df.shape[0]}, Columns: {df.shape[1]}")
+            
+            # Display data quality insights
+            st.subheader("Data Quality Insights")
+            missing_values = df.isnull().sum()
+            if missing_values.any():
+                st.write("Missing Values:")
+                st.write(missing_values[missing_values > 0])
+            
+            # Display duplicate rows if any
+            duplicates = df.duplicated().sum()
+            if duplicates > 0:
+                st.write(f"Number of duplicate rows: {duplicates}")
         
-        # Automatically define schema from output sample if provided
         if output_sample is not None:
             try:
                 output_df = pd.read_csv(
@@ -128,69 +139,128 @@ if input_file is not None:
                     st.error("The output sample file is empty")
                 else:
                     columns = output_df.columns.tolist()
+                    dtypes = {col: "string" if pd.api.types.is_string_dtype(output_df[col])
+                            else "float" if pd.api.types.is_float_dtype(output_df[col])
+                            else "integer" if pd.api.types.is_integer_dtype(output_df[col])
+                            else "string" for col in columns}
                     
-                    # Automatically determine dtypes
-                    dtypes = {}
-                    for col in columns:
-                        if pd.api.types.is_integer_dtype(output_df[col]):
-                            dtypes[col] = "integer"
-                        elif pd.api.types.is_float_dtype(output_df[col]):
-                            dtypes[col] = "float"
-                        else:
-                            dtypes[col] = "string"
-                    
-                    # Display detected schema
                     st.subheader("Detected Output Schema")
                     st.write("Columns:", columns)
                     st.write("Data Types:", dtypes)
                     
-                    if st.button("Get AI Suggestions"):
-                        desired_schema = {
-                            'columns': columns,
-                            'dtypes': dtypes
-                        }
+                    # Add cleaning options
+                    st.subheader("Data Cleaning Options")
+                    handle_missing = st.checkbox("Handle missing values", value=True)
+                    remove_duplicates = st.checkbox("Remove duplicate rows", value=True)
+                    fix_datatypes = st.checkbox("Fix data types", value=True)
+                    
+                    # Add text area for special instructions
+                    special_instructions = st.text_area(
+                        "Special cleaning instructions (optional)",
+                        placeholder="Enter any special instructions for data cleaning..."
+                    )
+                    
+                    if st.button("Clean and Transform Data"):
+                        # Modify cleaning prompt based on selected options
+                        cleaning_steps = []
+                        if handle_missing:
+                            cleaning_steps.append("1. Handle missing values appropriately (fill or remove)")
+                        if remove_duplicates:
+                            cleaning_steps.append("2. Remove duplicate rows if present")
+                        if fix_datatypes:
+                            cleaning_steps.append("3. Fix data types if needed")
                         
-                        # Get transformation suggestions from Claude
-                        with st.spinner("Getting AI suggestions..."):
-                            try:
-                                suggestions = get_claude_suggestions(df.head(), desired_schema)
-                                st.subheader("AI Transformation Suggestions")
-                                st.json(suggestions)
-                            
-                                # Input for transformation rules
-                                st.subheader("Set Transformation Rules")
-                                transformation_rules = {}
-                                for col in columns:
-                                    default_rule = suggestions.get(col, "")
-                                    rule = st.text_area(f"Transformation rule for {col}", value=default_rule)
-                                    if rule:
-                                        transformation_rules[col] = rule
-                                
-                                if transformation_rules and st.button("Transform Data"):
-                                    # Get Claude to help with the transformation
-                                    transform_prompt = f"""Given this input dataframe (showing first few rows):
+                        cleaning_prompt = f"""You are a data cleaning expert. Analyze this input dataframe and provide Python code to clean it.
+
+Input DataFrame (first few rows):
 {df.head().to_string()}
 
-And these transformation rules:
-{json.dumps(transformation_rules, indent=2)}
+Data quality insights:
+- Missing values: {missing_values[missing_values > 0].to_dict() if missing_values.any() else 'None'}
+- Duplicate rows: {duplicates}
 
-Please provide Python code to transform the data according to these rules. The code should create a new dataframe called 'transformed_df'."""
+Selected cleaning steps:
+{chr(10).join(cleaning_steps)}
+
+Special instructions:
+{special_instructions if special_instructions else 'None'}
+
+IMPORTANT: 
+- Use ONLY the 'df' variable that is already loaded in memory
+- Return ONLY valid Python code that creates a cleaned_df variable
+- Do not try to read or write any files
+- Do not include any explanations or markdown formatting
+
+Example format:
+cleaned_df = df.copy()
+cleaned_df = cleaned_df.dropna()
+cleaned_df = cleaned_df.drop_duplicates()
+"""
+
+                        with st.spinner("Analyzing data and generating cleaning suggestions..."):
+                            cleaning_code = invoke_claude(cleaning_prompt)
+                            st.subheader("Data Cleaning Steps")
+                            st.code(cleaning_code, language="python")
+                            
+                            try:
+                                # Execute cleaning code
+                                local_namespace = {'df': df.copy(), 'pd': pd}
+                                exec(cleaning_code, globals(), local_namespace)
+                                cleaned_df = local_namespace.get('cleaned_df')
+                                
+                                if cleaned_df is not None:
+                                    st.subheader("Cleaned Data Preview")
+                                    st.dataframe(cleaned_df.head())
+                                    
+                                    # Now get transformation suggestions
+                                    transform_prompt = f"""You are a Python data transformation expert. Write code to transform the cleaned dataframe to match the output format.
+
+Input DataFrame:
+{cleaned_df.head().to_string()}
+
+Target Output Format:
+{output_df.head().to_string()}
+
+Requirements:
+1. Create all required columns: {columns}
+2. Match these data types: {dtypes}
+3. Transform the data to match the output format exactly
+
+IMPORTANT:
+- Use the 'cleaned_df' variable as input
+- Create a new 'transformed_df' variable
+- Return ONLY valid Python code
+- Do not include any explanations or markdown
+- Do not use any external files
+- Use only pandas operations
+
+Example format:
+transformed_df = cleaned_df.copy()
+transformed_df['new_column'] = transformed_df['old_column'].apply(lambda x: x.upper())
+"""
 
                                     with st.spinner("Generating transformation code..."):
-                                        transformation_code = invoke_claude(transform_prompt)
+                                        transform_code = invoke_claude(transform_prompt)
+                                        transform_code = clean_python_code(transform_code)
+                                        st.subheader("Transformation Steps")
+                                        st.code(transform_code, language="python")
+                                        
                                         try:
-                                            # Create a local namespace for execution
-                                            local_namespace = {'df': df.copy(), 'pd': pd}
-                                            exec(transformation_code, globals(), local_namespace)
-                                            
-                                            # Get the transformed_df from the local namespace
+                                            # Execute transformation code with necessary imports
+                                            local_namespace = {
+                                                'cleaned_df': cleaned_df.copy(),
+                                                'pd': pd,
+                                                'np': np,
+                                                'transformed_df': None
+                                            }
+                                            exec(transform_code, globals(), local_namespace)
                                             transformed_df = local_namespace.get('transformed_df')
                                             
                                             if transformed_df is not None:
                                                 st.subheader("Transformed Data Preview")
                                                 st.dataframe(transformed_df.head())
                                                 
-                                                # Validate transformed data against schema
+                                                # Validate transformed data
                                                 schema_valid = True
                                                 for col, dtype in dtypes.items():
                                                     if col not in transformed_df.columns:
@@ -198,20 +268,33 @@ Please provide Python code to transform the data according to these rules. The c
                                                         schema_valid = False
                                                 
                                                 if schema_valid:
-                                                    # Download button for transformed data
-                                                    csv = transformed_df.to_csv(index=False)
-                                                    st.download_button(
-                                                        label="Download transformed data",
-                                                        data=csv,
-                                                        file_name="transformed_data.csv",
-                                                        mime="text/csv"
-                                                    )
+                                                    # Download buttons for both cleaned and transformed data
+                                                    col1, col2 = st.columns(2)
+                                                    with col1:
+                                                        cleaned_csv = cleaned_df.to_csv(index=False)
+                                                        st.download_button(
+                                                            label="Download cleaned data",
+                                                            data=cleaned_csv,
+                                                            file_name="cleaned_data.csv",
+                                                            mime="text/csv"
+                                                        )
+                                                    with col2:
+                                                        transformed_csv = transformed_df.to_csv(index=False)
+                                                        st.download_button(
+                                                            label="Download transformed data",
+                                                            data=transformed_csv,
+                                                            file_name="transformed_data.csv",
+                                                            mime="text/csv"
+                                                        )
                                             else:
                                                 st.error("Transformation did not produce expected output")
                                         except Exception as e:
                                             st.error(f"Error during transformation: {str(e)}")
+                                else:
+                                    st.error("Cleaning did not produce expected output")
                             except Exception as e:
-                                st.error(f"Error getting AI suggestions: {str(e)}")
+                                st.error(f"Error during cleaning: {str(e)}")
+                                
             except pd.errors.EmptyDataError:
                 st.error("The output sample file is empty")
             except Exception as e:
@@ -220,3 +303,16 @@ Please provide Python code to transform the data according to these rules. The c
         st.error("The input file is empty")
     except Exception as e:
         st.error(f"Error reading input file: {str(e)}") 
+
+# Helper function to clean and format Python code from Claude's response
+def clean_python_code(code_response):
+    # Remove any markdown code block indicators
+    code = code_response.replace("```python", "").replace("```", "").strip()
+    
+    # Remove any leading/trailing quotes
+    code = code.strip('"\'')
+    
+    # Ensure proper line endings
+    code = code.replace('\\n', '\n')
+    
+    return code 
