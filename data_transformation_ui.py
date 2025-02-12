@@ -265,9 +265,9 @@ st.title("Data Transformation & Migration Agent")
 def get_bedrock_client():
     return boto3.client(
         service_name='bedrock-runtime',
-        aws_access_key_id="sdfs",
-        aws_secret_access_key="dsasad",
-        aws_session_token="sdfds",
+        aws_access_key_id="ASIAVQIIYHBQGRDEV5OQ",
+        aws_secret_access_key="C0yrc1+TSZHa5L+DOEvoEk2EhO8zrHfnMEaz7gbC",
+        aws_session_token=f"IQoJb3JpZ2luX2VjENL//////////wEaCXVzLWVhc3QtMSJHMEUCIQDXbnYKuN+me2ejUOaqIXIuVorU27wa8Ee8QgpZd42DIgIgJ06oXJ1Ou4i8IvgLyRmmY8vcTU7Qko1WsVfG73AmvwQqmwMI6v//////////ARAAGgwzNzg1MTIzNTc0NzIiDLmY9uJfSFIa9ITFzCrvAtJjSyk+dZ8u+wy5CrN6qvVDB1GcNX3MZzt6HLHjkFO5kxahtZd2lQ9BB8A52INXU74Ty5h+VX9ixFEY4nofkgZGOn20SVqoLtqv8gjGrqSkDZPtu6jLpcTYowAhCkwEYuYp8XvFsl3DANaHnOSslqFVMce7pAU6yuyKDPVsjPE+oODr4CTlzb4Mhgwt3w588FoyEC5+QnilblOMrSjXUPbWRtzscJjRnDt2vGDuyKGM9YwqKKf8hNZGw35bdVHclz2QiT0ts0wMNapN/HsZDtnJbz0nMKzlxYDStSn6y3Vm71K3CjiqHb2qD/4fMCcqQ7sxkKmzrBfmcufEdwuX+akT7JMQwVClxHKPpendAKQUo8Ap69g1FEf6XgbTgu3SdBniq0slhiQn1FddzRSVQ3TgPF+ZkqcgHNIDLdAE6OYyFC6pjZlPs9zgzpYCfxRSHnomjwe8GhoLnDrtW73oMYteIW5WaYO1v2P0W+yojqEwpcqxvQY6pgGGLOgdqcOcFTcDGhq7r/pDLDs0dYY7NUEmwbSzhJbRoFLRB3jGISf1sNnpQZdR0UT1GBY5R4pfHM5amK7WhtSA1Gvlue4b1DWsEFYynb+Qif8Hz8qWVPLXrc4CwYufGvh3GikFkx4xYA9WYFQhIeJF4OkJaEMWoGH2i/tePGxPr9UUQPpUw9SPz8ZPSjnzL2zSfEPwBD0M0SlAl1uw2s/suks3CPJv",
         region_name="us-west-2"
     )
 
