@@ -265,9 +265,9 @@ st.title("Data Transformation & Migration Agent")
 def get_bedrock_client():
     return boto3.client(
         service_name='bedrock-runtime',
-        aws_access_key_id="ASIAVQIIYHBQCZDANEYX",
-        aws_secret_access_key="LhyzL+Nr1/x7ES8pORfR2uk+ypN+h7Q8h+pDCFyM",
-        aws_session_token=f"IQoJb3JpZ2luX2VjEFQaCXVzLWVhc3QtMSJHMEUCIEkWQoiZYEifE0rNkIWBU9B2DzsquO2LpaqiLKCO/e2gAiEAgGjiLfg7OWzjivPhk2lIpMjK9iUz6qyRyWhKR1RrbLwqmwMIjf//////////ARAAGgwzNzg1MTIzNTc0NzIiDCcVqTZF7hYxBoOZjSrvAp7Ss1y68sObdfQpeAJWG50cZiKuRRnzUYeKuSSqiUcEr6O5rhvW3QX8w2OTLO7n1xNwG5K8Psk8sIK05HlL/rcQknoRpx8hH+QFpWby+iz4lgmX0wmQQbMnQPVX18Ih4eUxjezq6ESb4DwwSe5LDbUScRlYGFmC/XfUr7YcnOyMWsJDYO6XjlI31Zue2kQ0KZ6AAuhJB4Tevvo6YKkvdG+AB2K+Yp8S3VzcWj1fIWdIT/35RWvxzDT/6mT4epUPFRwv5TCBCg0NUWBu6qKCoM3tz4Udr5e3RR9KHlg11scjMxrJLqSLKJh/J20kaAmlkbaLMaBDNhB8aYjYBzi+aFakwtnh+ltNlrhcx49Yhz4feAYtIBSsn9HHc28mj3fHsrr8FW2+SfUCNKN6YmKS4GsHfUSZiU0qQWUhJdtuvKfN5FbVbRCa70NSOUVeP5FPGm5BV9KODPHgn1eXqGKUotHVGRZRu5IyOcXmftzsn6Iwgb2GvgY6pgG17stCK0qxMEnZedsuYI8p1GhlUqrXfXnM9/SMVwlMD4HmpsF7HggzIpBu1p5X3z/Jdx5QvCdpFbnmv/B/0++Hy3a32vLxogtlRyqsnDYetvjKJmZjTjm0nak5/IWg/IjFyBS1yFIyUkD0SynAdRlI0CcyHltwPigIGzEwGN48XNdH5c90BmGO+lorT+38MKkIVOqDYRMOl5NB0k2gyLUkX2wTHUAw",
+        aws_access_key_id="ASIAVQIIYHBQMV52BWPS",
+        aws_secret_access_key="wgmWobun6v+a5BzpknXvjcb2UfP+2WgCHEACQzBi",
+        aws_session_token=f"IQoJb3JpZ2luX2VjEFYaCXVzLWVhc3QtMSJHMEUCIQDbDQmy/fyF26Rhl51k2i0uBlCf6UdhJiPaExM2IkLUfgIgcGevrIfq/FetdhMPiV08fp9WgkefWwHERjr7pXvZlyUqmwMIjv//////////ARAAGgwzNzg1MTIzNTc0NzIiDHDSoF+5/bFyVY7IMCrvAjsxKi2+L+imQfB9hqSffLyrYSLN3C5Lgv4HVCCFUYPACwN0TtmQ2iH1gmSo46nxyKw8vx0L5aaP6Ozl7rEEFO/pq2TYpju1xfnwZInYPd1szzNzVaORjVPEK5u1AtpWGH2/YfV4ZqoCEw+1DCKlfpmch2mc1i3utBdChqQGAnEHne7/BB1VHlqeYMWfWnv/oqwA7ChRIEEFaTBg+hgSXZQyZPnLkiJTcl1+BLPJvJCMoCfFbiUuFFyDYPwwINl1Yx5zuQoFZflkhfr/QUF1yi/QFozd6kSqeCWZhbNbUyae0QJeMSUhizs8EeSKPQnGcUCDUdnPgqCI27l92DiAWG2NI9XLK+JxHc4UzqZ39VrCJy6wWo2HQ3j9phDQrpZ3A1FZpzUoUaBMCIs3yBIw8PziQY0Rs73YykpYNuy1ENs7rVWL1Jt+MwuOF1a2AtwPTRFAWKN5vEUy+3AsV1zAtA8bpCfJr/AfC4AOMIWnjjkws+uGvgY6pgECUf7MXJ2nWkdYjmlpzKh5ZcbiutvgvBujCOJGCOe1IcWZw1deEcJwPh/3Q2tm3wMJNLPcfpTfSG/xjlfl3ycro31vhH0yIfQTkRm99/mDcQA+eDVct8WFtvcRDaAa7MP55AQ6tqvB7W3gytDBqsfSWNRMK9ijgnUQ/Fkn3AYYXMD06WwKzdnNdHlX1VesfZOnoX66pe1Uo6llCBo7qUJPCzfVhEZH",
         region_name="us-west-2"
     )
 
